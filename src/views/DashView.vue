@@ -65,6 +65,7 @@
                     <v-tab>Google Trends</v-tab>
                     <v-tab>Google News</v-tab>
                     <v-tab>Twitter</v-tab>
+                    <v-tab>Dashboard</v-tab>
                     <v-tab-item>
                       <v-container fluid>
                       <v-row
@@ -80,8 +81,8 @@
                          >
                           <v-col class="d-flex" cols="12" sm="12" >
                             <v-data-table
-                              :headers="headersGTrendsTodayHotTrends"
-                              :items="itemsGTrendsTodayHotTrends"
+                              :headers="headersGTrendsTodayHot"
+                              :items="itemsGTrendsTodayHot"
                               :items-per-page="10"
                               class="elevation-1"
                             ></v-data-table>
@@ -147,32 +148,55 @@
                       </v-row>
                       </v-container>
                     </v-tab-item>
+                    <v-tab-item>
+                  <!-- CHARTS -------- -->
+                    <v-container fluid>
+                      <v-row
+                        class="pa-2"
+                        justify="center"
+                        align="center"
+                      >
+                        <v-col class="d-flex" cols="6" sm="6" >
+                          <BarChart 
+                              ref="bar-chart" 
+                              chartId="Time Variation"
+                              :chartData="twitterTrendsBarChartData"
+                              :chartOptions="BarChartOptions"
+                            />
+                        </v-col>
+
+                        <v-col class="d-flex" cols="6" sm="6" >
+                          <BarChart 
+                              ref="bar-chart" 
+                              chartId="Time Variation"
+                              :chartData="googleTrendsBarChartData"
+                              :chartOptions="BarChartOptions"
+                            />
+                        </v-col>
+
+                        <v-col class="d-flex" cols="6" sm="6" >
+                          <LineChart
+                            :chartOptions='LineChartOptions'
+                            :chartData='LineChartData'
+                            chart-id='myCustomId'
+                            ref="line-chart"
+                          />
+                        </v-col>
+                        <v-col class="d-flex" cols="6" sm="6" >
+                          <DoghnutChart
+                            :chartOptions='LineChartOptions'
+                            :chartData='LineChartData'
+                            chart-id='myCustomId'
+                            ref="line-chart"
+                          />
+                        </v-col>
+
+                      </v-row>
+                      </v-container>                  
+                     </v-tab-item>
                   </v-tabs>
                   </v-col>
                   </v-row>
-
-                  <v-row>
-                    <!--
-                    <v-col class="d-flex" cols="12" sm="12" >
-                      <BarChart 
-                          ref="bar-chart" 
-                          chartId="Time Variation"
-                          :chartData="BarChartData"
-                          :chartOptions="BarChartOptions"
-                        />
-                    </v-col>
-
-                    <v-col class="d-flex" cols="12" sm="12" >
-                      <line-chart
-                        :chart-options='LineChartOptions'
-                        :chart-data='LineChartData'
-                        chart-id='myCustomId'
-                        ref="line-chart"
-                      />
-                    </v-col>
-                    -->
-                  </v-row>
-
 
                   <v-row
                     class="pa-2"
@@ -189,7 +213,15 @@
                     </v-col>
                   </v-row>
             </v-card>
-      
+                 <v-row
+                    class="pa-2"
+                    justify="center"
+                    align="center"
+                  >
+                    <v-col class="d-flex" cols="12" sm="12" >
+                    {{ errorMsg }}
+                    </v-col>
+                  </v-row>
     </v-container>
   </v-main>
 
@@ -213,7 +245,7 @@
       max-width="350"
     >
       <v-card>
-        <v-card-title class="headline">Pesqisando...</v-card-title>
+        <v-card-title class="headline">Pesquisando...</v-card-title>
         <v-card-text>
           <template>
             <div class="text-center">
@@ -233,8 +265,9 @@
 <script>
 //import HelloWorld from '@/components/HelloWorld.vue'
 import axios from 'axios'
-//import BarChart from '@/components/BarChart.vue'
-//import LineChart from '@/components/LineChart.vue'
+import BarChart from '@/components/BarChart.vue'
+import LineChart from '@/components/LineChart.vue'
+import DoghnutChart from '@/components/DoghnutChart.vue'
 
 const headers = {
     'Content-Type': 'application/json',
@@ -243,10 +276,17 @@ const headers = {
 }
 const URL_BACK= process.env.VUE_APP_URL_BACK
 
+const chartOptions= {
+        responsive: true,
+        maintainAspectRatio: false
+}
+
 export default {
   name: 'DashView',
   components: {
-
+    BarChart,
+    LineChart,
+    DoghnutChart,
   },
   data() {
     return {
@@ -295,7 +335,7 @@ export default {
       itemsGNews: [
       ],
       
-      headersGTrendsTodayHotTrends: [
+      headersGTrendsTodayHot: [
         {
           text:'Título',
           align:'start',
@@ -309,7 +349,7 @@ export default {
           value:'type',
         },
       ],
-      itemsGTrendsTodayHotTrends: [],
+      itemsGTrendsTodayHot: [],
 
       headersGTrendsRealTimeSearch:[
         {
@@ -321,6 +361,10 @@ export default {
       ],
       itemsGTrendsRealTimeSearch: [],
       
+      googleTrendsBarChartData: {},
+      itemsGTrendsInterestTime: [],
+      labelsGTrendsInterestTime: [],
+
       headersTwitter:[
             {
               text: 'Texto',
@@ -362,10 +406,10 @@ export default {
               value: 'name',
             }, 
             {
-              text: 'Query',
+              text: 'Tweet Volume',
               align: 'start',
               sortable: false,
-              value: 'query',
+              value: 'tweet_volume',
             },                        
             {
               text: 'Data',
@@ -375,7 +419,49 @@ export default {
             }, 
       ],
       itemsTwitterTrends:[],
-       
+
+      BarChartDataOrig: {
+        labels: [ 'January', 'February', 'March'],
+        datasets: [
+          {
+            label: 'Data One',
+            backgroundColor: '#f87979',
+            data: [40, 20, 12]
+          },
+          {
+            label: 'Data Two',
+            backgroundColor: '#f87979',
+            data: [22,55,34]
+          },
+        ]
+      },
+      
+      BarChartOptions: chartOptions,
+      LineChartOptions: chartOptions,
+      LineChartData:{
+        labels: [ 'Jan', 'Feb', 'Mar'],
+        datasets: [
+          {
+            label: 'Data One',
+            backgroundColor: '#f87979',
+            data: [40, 20, 12]
+          }
+        ]
+      }, 
+      BarChartDataEx: {
+        labels: [],
+        datasets: [
+          {
+            label: 'Tweets',
+            backgroundColor: '#f87979',
+            data: []
+          },
+        ]
+      },
+
+      twitterTrendsBarChartData: {},
+      //twitterTrendsBarChartDataSet: [],
+      //twitterTrendsBarChartLabels: [],
     }
   },
   methods: {
@@ -400,44 +486,64 @@ export default {
     searchGTrends() {
       console.log('g trends hot')
       this.performingRequest = true
-      //let url = this.URL_BACK + "gt_realtime"?query=" + this.location
-      let url = URL_BACK + "gt_hot?query=" + this.searchString
+      //let url = this.URL_BACK + "gt_realtime"?query=" + this.location //gt_hot
+      let url = URL_BACK + "google_trends_three?query=" + this.searchString
       console.log(url)
-      let vueInstance = this
+      let vueInst = this
       axios.get(url, {
            headers: headers
          }).then(response => {
            console.log(response)
-           vueInstance.performingRequest = false
-           vueInstance.itemsGTrendsTodayHotTrends = response.data.results.results
-           console.log(vueInstance.itemsGNews)
+           vueInst.performingRequest = false
+           //vueInst.itemsGTrendsTodayHotTrends = response.data.results.results
+           vueInst.itemsGTrendsTodayHot = response.data.today_hot_trends.results
+           vueInst.itemsGTrendsInterestTime = response.data.int_over_time.results
+           vueInst.itemsGTrendsRealTimeSearch = response.data.realtime_searches.results
+           
+           let nodes = vueInst.itemsGTrendsInterestTime[vueInst.searchString]
+           let dataLabels = []
+           let dataSet = []
+                      
+           if (response.data.int_over_time.status == "ok") {
+            Object.entries(nodes).forEach(([key, value]) => {
+              //console.log(`${key} ${value}`); // "a 5", "b 7", "c 9"
+              dataLabels.push(key.toString().slice(0,10))
+              dataSet.push(value)
+            });
+            vueInst.googleTrendsBarChartData = this.createChartDataObj(dataLabels, dataSet, 'Google Trends Interest Over Time')
+           } else {
+            console.log('error else')
+            this.errorMsg = vueInst.itemsGTrendsInterestTime.results
+           }
          }, (error) => {
           console.log(error)
           this.performingRequest = false
           console.log("ERRO GT_HOT")
          })
-
     }, 
     searchTwitter() {
       console.log('twitter')
       this.performingRequest = true
       //let url = this.URL_BACK + "gt_realtime"?query=" + this.location
       let url = URL_BACK + "twt_search?query=" + this.searchString
-      let vueInstance = this
+      let vueInst = this
       axios.get(url, {
            headers: headers
          }).then(response => {
            console.log(response)
-           vueInstance.performingRequest = false
-           vueInstance.itemsTwitter = response.data.results
-           vueInstance.itemsTwitterTrends = response.data.trends
-           
+           vueInst.performingRequest = false
+           vueInst.itemsTwitter = response.data.results
+           vueInst.itemsTwitterTrends = response.data.trends
+           let nodes = response.data.trends
+           /* Map each item of nodes to a nested array where each is a row of two columns */
+           let dataLabels = nodes.map((node) => [node.name]);
+           let dataSet = nodes.map((node) => [node.tweet_volume]);
+           vueInst.twitterTrendsBarChartData = this.createChartDataObj(dataLabels, dataSet, 'Tweets volume')
          }, (error) => {
           console.log(error)
           this.performingRequest = false
           console.log("ERRO TWITTER")
          })
-
     },     
 
     searchData() {
@@ -454,10 +560,35 @@ export default {
      
     },
 
+    createChartDataObj(labelsArr, dataArr, label) {
+      let ChartData= {
+        labels: labelsArr,
+        datasets: [
+          {
+            label: label,
+            backgroundColor: '#f87979',
+            data: dataArr
+          },
+        ]
+      }
+      return ChartData
+    },
+
+    requestData () {
+      axios.get(`https://api.npmjs.org/downloads/range/${this.period}/${this.package}`)
+      .then(response => {
+        this.downloads = response.data.downloads.map(download => download.downloads)
+        this.labels = response.data.downloads.map(download => download.day)
+        this.packageName = response.data.packagethis.loaded = true})
+      .catch(err => {
+        this.errorMessage = err.response.data.error
+        this.showError = true})
+    },
+
   },
   created() {
     console.log(process.env.BASE_URL)
-    console.log(URL_BACK)
+    //console.log(URL_BACK)
   },
 /*    
 BarChartData:  {
