@@ -1,15 +1,27 @@
 <template>
+ <v-container fluid>
+ <v-card
+   class="mx-auto"
+   elevation="2"
+   fluid                          
+ >
+ <v-card-title> {{title}} </v-card-title>
+ <v-card-text> {{ msg }}</v-card-text>
+
   <Doughnut
     :chart-options="chartOptions"
     :chart-data="chartData"
     :chart-id="chartId"
     :dataset-id-key="datasetIdKey"
     :plugins="plugins"
+    display= false
     :css-classes="cssClasses"
     :styles="styles"
     :width="width"
     :height="height"
   />
+</v-card>
+</v-container>    
 </template>
 
 <script>
@@ -32,6 +44,22 @@ export default {
     Doughnut
   },
   props: {
+    title: {
+      type:String,
+      default:''
+    },
+    msg: {
+      type:String,
+      default:''
+    },
+    chartData: {
+        type: Object,
+        required: true
+      },
+    chartOptions: {
+      type: Object,
+      default: () => {}
+    },
     chartId: {
       type: String,
       default: 'doughnut-chart'
@@ -61,7 +89,7 @@ export default {
       default: () => []
     }
   },
-  data() {
+  /*data() {
     return {
       chartData: {
         labels: ['VueJs', 'EmberJs', 'ReactJs', 'AngularJs'],
@@ -78,5 +106,6 @@ export default {
       }
     }
   }
+  */
 }
 </script>

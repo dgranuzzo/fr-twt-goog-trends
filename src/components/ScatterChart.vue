@@ -1,13 +1,13 @@
 <template>
-<v-container fluid>
-<v-card
+ <v-container fluid>
+ <v-card
    class="mx-auto"
    elevation="2"
    fluid                          
  >
  <v-card-title> {{title}} </v-card-title>
  <v-card-text> {{ msg }}</v-card-text>
-  <lineChart
+  <Scatter
     :chart-options="chartOptions"
     :chart-data="chartData"
     :chart-id="chartId"
@@ -19,18 +19,18 @@
     :height="height"
   />
 </v-card>
-</v-container>    
+</v-container>  
 </template>
 
 <script>
-import { Line as lineChart } from 'vue-chartjs'
-import { Chart as ChartJS, Title, Tooltip, Legend, CategoryScale, LinearScale, LineElement, PointElement, } from 'chart.js'
+import { Scatter } from 'vue-chartjs'
+import { Chart as ChartJS, Title, Tooltip, Legend, LineElement, CategoryScale, PointElement, LinearScale } from 'chart.js'
 
-ChartJS.register(Title, Tooltip, Legend, CategoryScale, LinearScale, LineElement, PointElement,)
+ChartJS.register(Title, Tooltip, Legend, LineElement, CategoryScale, PointElement, LinearScale)
 
 export default {
-  name: 'LineChart',
-  components: { lineChart },
+  name: 'ScatterChart',
+  components: { Scatter },
   props: {
     title: {
       type:String,
@@ -50,7 +50,7 @@ export default {
     },
     chartId: {
       type: String,
-      default: 'line-chart'
+      default: 'bar-chart'
     },
     datasetIdKey: {
       type: String,
@@ -77,10 +77,24 @@ export default {
       default: () => {}
     }
   },
-  data() {
-    return {
-      var1:"",
-    }
-  }
+
 }
+/* 
+data() {
+    return {
+      chartData: {
+        label: [ 'January', 'February', 'March' ],
+        data: [
+              {
+                x: -2,
+                y: 4
+              },
+              ]
+      },
+      chartOptions: {
+        responsive: true
+      }
+    }
+  },
+*/
 </script>

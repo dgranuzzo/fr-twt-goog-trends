@@ -1,4 +1,12 @@
 <template>
+ <v-container fluid>
+ <v-card
+   class="mx-auto"
+   elevation="2"
+   fluid                          
+ >
+ <v-card-title> {{title}} </v-card-title>
+ <v-card-text> {{ msg }}</v-card-text>
   <Bar
     :chart-options="chartOptions"
     :chart-data="chartData"
@@ -10,6 +18,8 @@
     :width="width"
     :height="height"
   />
+</v-card>
+</v-container>  
 </template>
 
 <script>
@@ -22,6 +32,14 @@ export default {
   name: 'BarChart',
   components: { Bar },
   props: {
+    title: {
+      type:String,
+      default:''
+    },
+    msg: {
+      type:String,
+      default:''
+    },
     chartData: {
         type: Object,
         required: true
@@ -44,7 +62,7 @@ export default {
     },
     height: {
       type: Number,
-      default: 400
+      default: 500
     },
     cssClasses: {
       default: '',
